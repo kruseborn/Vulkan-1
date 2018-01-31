@@ -24,7 +24,7 @@
 #include "VulkanBuffer.hpp"
 
 #define VERTEX_BUFFER_BIND_ID 0
-#define ENABLE_VALIDATION false
+#define ENABLE_VALIDATION true
 
 // Offscreen frame buffer properties
 #define FB_DIM 256

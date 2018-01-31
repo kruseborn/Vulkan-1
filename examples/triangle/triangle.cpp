@@ -28,7 +28,7 @@
 #include "vulkanexamplebase.h"
 
 // Set to "true" to enable Vulkan's validation layers (see vulkandebug.cpp for details)
-#define ENABLE_VALIDATION false
+#define ENABLE_VALIDATION true
 // Set to "true" to use staging buffers for uploading vertex and index data to device local memory
 // See "prepareVertices" for details on what's staging and on why to use it
 #define USE_STAGING true
@@ -951,7 +951,7 @@ public:
 		vertexInputState.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 		vertexInputState.vertexBindingDescriptionCount = 1;
 		vertexInputState.pVertexBindingDescriptions = &vertexInputBinding;
-		vertexInputState.vertexAttributeDescriptionCount = 2;
+		vertexInputState.vertexAttributeDescriptionCount = 1;
 		vertexInputState.pVertexAttributeDescriptions = vertexInputAttributs.data();
 
 		// Shaders
