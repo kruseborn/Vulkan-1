@@ -39,7 +39,6 @@ public:
 	// Vertex layout used in this example
 	struct Vertex {
 		float position[3];
-		float color[3];
 	};
 
 	// Vertex buffer and attributes
@@ -75,9 +74,7 @@ public:
 	// This way we can just memcopy the ubo data to the ubo
 	// Note: You should use data types that align with the GPU in order to avoid manual padding (vec4, mat4)
 	struct {
-		glm::mat4 projectionMatrix;
-		glm::mat4 modelMatrix;
-		glm::mat4 viewMatrix;
+    glm::mat4 mvp;
 	} uboVS;
 
 	// The pipeline layout is used by a pipline to access the descriptor sets 
@@ -288,7 +285,7 @@ public:
 			// Update dynamic viewport state
 			VkViewport viewport = {};
 			viewport.height = (float)height;
-			viewport.width = (float)width;
+			viewport.width = (float)width / 2.0f;
 			viewport.minDepth = (float) 0.0f;
 			viewport.maxDepth = (float) 1.0f;
 			vkCmdSetViewport(drawCmdBuffers[i], 0, 1, &viewport);
@@ -369,14 +366,13 @@ public:
 		// Setup vertices
 		std::vector<Vertex> vertexBuffer = 
 		{
-			{ {  1.0f,  1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f } },
-			{ { -1.0f,  1.0f, 0.0f }, { 0.0f, 1.0f, 0.0f } },
-			{ {  0.0f, -1.0f, 0.0f }, { 0.0f, 0.0f, 1.0f } }
+      { 10000.0f, 0.0f, 0.0f },
+      { -10000.0f, 0.0f, 0.0f }
 		};
 		uint32_t vertexBufferSize = static_cast<uint32_t>(vertexBuffer.size()) * sizeof(Vertex);
 
 		// Setup indices
-		std::vector<uint32_t> indexBuffer = { 0, 1, 2 };
+		std::vector<uint32_t> indexBuffer = { 0, 1 };
 		indices.count = static_cast<uint32_t>(indexBuffer.size());
 		uint32_t indexBufferSize = indices.count * sizeof(uint32_t);
 
@@ -859,7 +855,7 @@ public:
 		// This pipeline will assemble vertex data as a triangle lists (though we only use one triangle)
 		VkPipelineInputAssemblyStateCreateInfo inputAssemblyState = {};
 		inputAssemblyState.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-		inputAssemblyState.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+		inputAssemblyState.topology = VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
 
 		// Rasterization state
 		VkPipelineRasterizationStateCreateInfo rasterizationState = {};
@@ -933,7 +929,7 @@ public:
 		vertexInputBinding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
 		// Inpute attribute bindings describe shader attribute locations and memory layouts
-		std::array<VkVertexInputAttributeDescription, 2> vertexInputAttributs;
+		std::array<VkVertexInputAttributeDescription, 1> vertexInputAttributs;
 		// These match the following shader layout (see triangle.vert):
 		//	layout (location = 0) in vec3 inPos;
 		//	layout (location = 1) in vec3 inColor;
@@ -942,13 +938,13 @@ public:
 		vertexInputAttributs[0].location = 0;
 		// Position attribute is three 32 bit signed (SFLOAT) floats (R32 G32 B32)
 		vertexInputAttributs[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-		vertexInputAttributs[0].offset = offsetof(Vertex, position);
+    vertexInputAttributs[0].offset = 0.0f;
 		// Attribute location 1: Color
-		vertexInputAttributs[1].binding = 0;
-		vertexInputAttributs[1].location = 1;
-		// Color attribute is three 32 bit signed (SFLOAT) floats (R32 G32 B32)
-		vertexInputAttributs[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-		vertexInputAttributs[1].offset = offsetof(Vertex, color);
+		//vertexInputAttributs[1].binding = 0;
+		//vertexInputAttributs[1].location = 1;
+		//// Color attribute is three 32 bit signed (SFLOAT) floats (R32 G32 B32)
+		//vertexInputAttributs[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+		//vertexInputAttributs[1].offset = offsetof(Vertex, color);
 
 		// Vertex input state used for pipeline creation
 		VkPipelineVertexInputStateCreateInfo vertexInputState = {};
@@ -1049,15 +1045,7 @@ public:
 	void updateUniformBuffers()
 	{
 		// Update matrices
-		uboVS.projectionMatrix = glm::perspective(glm::radians(60.0f), (float)width / (float)height, 0.1f, 256.0f);
-
-		uboVS.viewMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, zoom));
-
-		uboVS.modelMatrix = glm::mat4(1.0f);
-		uboVS.modelMatrix = glm::rotate(uboVS.modelMatrix, glm::radians(rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-		uboVS.modelMatrix = glm::rotate(uboVS.modelMatrix, glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
-		uboVS.modelMatrix = glm::rotate(uboVS.modelMatrix, glm::radians(rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
-
+    uboVS.mvp = glm::mat4(1);
 		// Map uniform buffer and update it
 		uint8_t *pData;
 		VK_CHECK_RESULT(vkMapMemory(device, uniformBufferVS.memory, 0, sizeof(uboVS), 0, (void **)&pData));
